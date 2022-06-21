@@ -1,0 +1,166 @@
+﻿<div class="borders" style="width:auto" ondragover="event.preventDefault()" tabindex="1" draggable="true"  @ondrop="@(()=> Drop(operand_index,prev_op,prev_operands))" 
+                             @ondragstart="@(()=> StartDrag(prev_op,prev_operands,operand_index))" 
+                            @ondrop:stopPropagation="true"
+                             @ondragstart:stopPropagation="true"
+                            @ondragenter:stopPropagation="true">
+
+    @if (op.Equals("and") | op.Equals("or"))
+    {
+        <svg height="100%" width="16" viewBox="0 0 16 219" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            @if (op.Equals("or"))
+            {
+                <path d="M16 1H1V218H16" stroke="#43633D" stroke-width="2px" vector-effect="non-scaling-stroke" />
+            }
+            @if (op.Equals("and"))
+            {
+                <path d="M16 1H1V218H16" stroke="#2649C5" stroke-width="2px" vector-effect="non-scaling-stroke" />
+            }
+        </svg>
+        @if (op.Equals("or"))
+        {
+            <div class="border_move"  style="background: #DDE7DB; border: 1px solid #F5F7FB; ">
+                <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;">
+                <p style="margin-left: 5px; margin-top: 15px;">@op.ToUpper()</p>
+            </div>
+        }
+        else
+        {
+            <div class="border_move">
+                <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;">
+                <p style="margin-left: 5px; margin-top: 15px;">@op.ToUpper()</p>
+            </div>
+        }
+        @if (operands != null)
+        {
+            
+            
+            @for (var i = 0; i < operands.Count; i++)
+            {
+                int j = i;
+                    @if (operands[i].op.Equals("and") | operands[i].op.Equals("or"))
+                    {
+                        
+                        <Component op="@operands[j].op" operands="@operands[j].operands" operand_index="@j" prev_operands="@operands" prev_op="@op" ></Component>
+                    }
+                    @if (!operands[i].op.Equals("and") & !operands[i].op.Equals("or"))
+                    {
+
+
+                        <div class="move_element" draggable="true" tabindex="1"  ondragover="event.preventDefault()"
+                             @ondrop="@(()=> Drop(j,op,operands))"
+                             @ondragstart="@(()=> StartDrag(op,operands,j))"
+                             @ondrop:stopPropagation="true"
+                             @ondragstart:stopPropagation="true">
+                            <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;" />
+                            @if (operands[i].operands[0].field_string != null)
+                            {
+                                <button class="elem">
+                                    @operands[i].operands[0].field_string @operands[i].op
+                                    @operands[i].operands[1].value_string
+                                </button>
+                            }
+                            @if (operands[i].operands[0].field_float != null)
+                            {
+                                <button class="elem">
+                                    @operands[i].operands[0].field_float @operands[i].op
+                                    @operands[i].operands[1].value_float
+                                </button>
+                            }
+                            @if (operands[i].operands[0].field_varchar != null)
+                            {
+                                <button class="elem">
+                                    @operands[i].operands[0].field_varchar @operands[i].op
+                                    @operands[i].operands[1].value_varchar
+                                </button>
+                            }
+
+
+                        </div>
+                        
+                    }
+                
+            }
+            
+            
+        }
+
+    }
+
+
+</div>
+
+
+@code {
+    [Parameter]
+    public string op { get; set; }
+    [Parameter]
+    public List<Item> operands { get; set; }
+    [Parameter]
+    public int operand_index { get; set; }
+    [Parameter]
+    public List<Item> prev_operands { get; set; }
+    [Parameter]
+    public String prev_op { get; set; }
+    Item item;
+    int count;
+    int currentIndex;
+    int currentIndexOperand;
+    Boolean flag=false;
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        item = new Item(op, operands);
+    }
+    private void StartDrag(String _op, List<Item> _operands,int i)
+    {
+        Console.WriteLine(i);
+        item = new Item(_op, _operands);
+
+        currentIndex = i;
+        Console.WriteLine(_operands[currentIndex].op);
+        Console.WriteLine($"Vsego:{_operands.Count}");
+        for (int j = 0; j < _operands.Count; j++)
+        {
+            Console.WriteLine(_operands[j].op);
+        }
+
+
+    }
+
+
+    int GetIndex(Item item)
+    {
+        return item.operands.FindIndex(a => a.op==item.op);
+    }
+
+    void Drop(int j, String _op, List<Item> _operands)
+    {
+        if (item != null)
+        {
+            var index = j;
+            Console.WriteLine($"Drop index is {index}, move from {currentIndex}");
+            // get current item
+            var current = _operands[currentIndex];
+            Console.WriteLine(current.op);
+            //_operands.RemoveAt(currentIndex);
+            //_operands.Insert(index, current);
+            _operands[currentIndex]=_operands[index];
+            _operands[index] = current;
+
+                // update current selection
+            currentIndex = index;
+
+            StateHasChanged();
+            Console.WriteLine($"Count:{count}");
+            flag = false;
+            
+
+        }
+        else
+        {
+            Console.WriteLine("Drop - null");
+        }
+    }
+
+}
+
