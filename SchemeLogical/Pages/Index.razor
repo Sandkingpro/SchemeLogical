@@ -18,10 +18,9 @@
     static string json2 = json?.Replace("'", "\"");
     public static string json3 = json2?.Replace("-", "_");
     static Item item = JsonSerializer.Deserialize<Item>(json3);
-    private async Task ReDraw()
+    private void ReDraw()
     {
-        await Task.Delay(500);
-        item = JsonSerializer.Deserialize<Item>(json3);
+        StateHasChanged();
     }
     protected override void OnInitialized()
     {

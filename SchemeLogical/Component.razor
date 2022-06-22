@@ -5,19 +5,19 @@
                              @ondragstart:stopPropagation="true"
                             @ondragenter:stopPropagation="true">
 
-    @if (op.Equals("and") | op.Equals("or"))
+    @if (@op.Equals("and") | @op.Equals("or"))
     {
         <svg height="100%" width="16" viewBox="0 0 16 219" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-            @if (op.Equals("or"))
+            @if (@op.Equals("or"))
             {
                 <path d="M16 1H1V218H16" stroke="#43633D" stroke-width="2px" vector-effect="non-scaling-stroke" />
             }
-            @if (op.Equals("and"))
+            @if (@op.Equals("and"))
             {
                 <path d="M16 1H1V218H16" stroke="#2649C5" stroke-width="2px" vector-effect="non-scaling-stroke" />
             }
         </svg>
-        @if (op.Equals("or"))
+        @if (@op.Equals("or"))
         {
             <div class="border_move"  style="background: #DDE7DB; border: 1px solid #F5F7FB; ">
                 <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;">
@@ -51,7 +51,9 @@
                              @ondrop="@(()=> Drop(j,op,operands))"
                              @ondragstart="@(()=> StartDrag(op,operands,j))"
                              @ondrop:stopPropagation="true"
-                             @ondragstart:stopPropagation="true">
+                             @ondragstart:stopPropagation="true"
+                             @ondragend="(()=>DeleleteItem())"
+                             @ondragend:stopPropagation="true">
                             <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;" />
                             @if (operands[i].operands[0].field_string != null)
                             {
@@ -103,8 +105,9 @@
     public List<Item> prev_operands { get; set; }
     [Parameter]
     public String prev_op { get; set; }
-    [Parameter] public EventCallback<DragEventArgs> OnChange { get; set;}
+    [Parameter] public EventCallback OnChange { get; set;}
     Item item;
+    Item current;
     int count;
     int currentIndex;
     int currentIndexOperand;
@@ -121,6 +124,7 @@
         item = new Item(_op, _operands);
         currentIndex = i;
         StateContainer.Property = currentIndex.ToString();
+        current = _operands[currentIndex];
         Console.WriteLine(_operands[currentIndex].op);
         Console.WriteLine($"Vsego:{_operands.Count}");
         for (int j = 0; j < _operands.Count; j++)
@@ -147,16 +151,13 @@
             currentIndex = int.Parse(StateContainer.Property);
             Console.WriteLine($"Drop index is {index}, move from {currentIndex}");
             // get current item
-            if (!flag)
+            if (!flag && current==null)
             {
-                var current = prev_operands[currentIndex];
+                current = prev_operands[currentIndex];
                 _operands.Add(current);
-                prev_operands.Remove(current);
             }
             else
             {
-                var current = operands[currentIndex];
-                Console.WriteLine(current.op);
                 _operands[currentIndex]=_operands[index];
                 _operands[index] = current;
             }
@@ -180,6 +181,16 @@
     void reDraw()
     {
         StateHasChanged();
+    }
+    void DeleleteItem()
+    {
+        Console.WriteLine(flag);
+        if (flag)
+        {
+            operands.RemoveAt(currentIndex);
+
+        }
+        
     }
 }
 
