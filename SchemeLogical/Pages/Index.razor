@@ -6,12 +6,13 @@
 @using System.Text.Json;
 @page "/"
 <div class="scheme container-fluid m-5">
-    <Component op="@item.op" operands="@item.operands"></Component>
+    <Component op="@item.op" operands="@item.operands" level="@item.level"></Component>
 
 
 </div>
 
 @code{
+
     static string value = "{ 'op': 'and','operands': [{ 'op': 'and', 'operands': [{'op': '=', 'operands': [{ 'field-string': 'path' },{ 'value-string': '/json' }]},{'op': '=', 'operands': [{ 'field-string': 'paths' },{ 'value-string': '/json' }]},{ 'op': '>=','operands': [{ 'field-float': 'latitude'}, { 'value-float': 57.89331022258886}]},{'op':'or','operands':[{'op': '=', 'operands': [{ 'field-string': 'path' },{ 'value-string': '/json' }]},{ 'op': '>=','operands': [{ 'field-float': 'latitude'}, { 'value-float': 57.89331022258886}]}]}]},{'op': '=', 'operands': [{'field-varchar': 'stream'},{'value-varchar': 'checkRegistration'}]}]}";
     static string json = value?.Replace(" ", "");
     static string json2 = json?.Replace("'", "\"");
@@ -22,7 +23,12 @@
         await Task.Delay(500);
         item = JsonSerializer.Deserialize<Item>(json3);
     }
-    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        item.level = 1;
+    }
+
 
 
 }

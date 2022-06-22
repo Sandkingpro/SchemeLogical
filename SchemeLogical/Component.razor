@@ -1,5 +1,6 @@
-﻿<div class="borders" style="width:auto" ondragover="event.preventDefault()" tabindex="1" draggable="true"  @ondrop="@(()=> Drop(operand_index,prev_op,prev_operands))" 
-                             @ondragstart="@(()=> StartDrag(prev_op,prev_operands,operand_index))" 
+﻿@inject StateContainer StateContainer
+<div class="borders" style="width:auto" ondragover="event.preventDefault()" tabindex="1" draggable="true"  @ondrop="@(()=> Drop(operand_index,prev_op,prev_operands))" 
+                             @ondragstart="@(()=> StartDrag(prev_op,prev_operands,operand_index))"
                             @ondrop:stopPropagation="true"
                              @ondragstart:stopPropagation="true"
                             @ondragenter:stopPropagation="true">
@@ -39,8 +40,8 @@
                 int j = i;
                     @if (operands[i].op.Equals("and") | operands[i].op.Equals("or"))
                     {
-                        
-                        <Component op="@operands[j].op" operands="@operands[j].operands" operand_index="@j" prev_operands="@operands" prev_op="@op" ></Component>
+                    level += 1;
+                    <Component op="@operands[j].op" operands="@operands[j].operands" operand_index="@j" prev_operands="@operands" prev_op="@op" level="@level"></Component>
                     }
                     @if (!operands[i].op.Equals("and") & !operands[i].op.Equals("or"))
                     {
@@ -93,14 +94,16 @@
 @code {
     [Parameter]
     public string op { get; set; }
-    [Parameter]
+    [Parameter] 
     public List<Item> operands { get; set; }
+    [Parameter] public int level{ get; set; }
     [Parameter]
     public int operand_index { get; set; }
     [Parameter]
     public List<Item> prev_operands { get; set; }
     [Parameter]
     public String prev_op { get; set; }
+    [Parameter] public EventCallback<DragEventArgs> OnChange { get; set;}
     Item item;
     int count;
     int currentIndex;
@@ -110,19 +113,21 @@
     {
         base.OnInitialized();
         item = new Item(op, operands);
+        StateContainer.OnChange += StateHasChanged;
     }
     private void StartDrag(String _op, List<Item> _operands,int i)
     {
         Console.WriteLine(i);
         item = new Item(_op, _operands);
-
         currentIndex = i;
+        StateContainer.Property = currentIndex.ToString();
         Console.WriteLine(_operands[currentIndex].op);
         Console.WriteLine($"Vsego:{_operands.Count}");
         for (int j = 0; j < _operands.Count; j++)
         {
             Console.WriteLine(_operands[j].op);
         }
+        flag = true;
 
 
     }
@@ -135,25 +140,36 @@
 
     void Drop(int j, String _op, List<Item> _operands)
     {
+
         if (item != null)
         {
             var index = j;
+            currentIndex = int.Parse(StateContainer.Property);
             Console.WriteLine($"Drop index is {index}, move from {currentIndex}");
             // get current item
-            var current = _operands[currentIndex];
-            Console.WriteLine(current.op);
-            //_operands.RemoveAt(currentIndex);
-            //_operands.Insert(index, current);
-            _operands[currentIndex]=_operands[index];
-            _operands[index] = current;
+            if (!flag)
+            {
+                var current = prev_operands[currentIndex];
+                _operands.Add(current);
+                prev_operands.Remove(current);
+            }
+            else
+            {
+                var current = operands[currentIndex];
+                Console.WriteLine(current.op);
+                _operands[currentIndex]=_operands[index];
+                _operands[index] = current;
+            }
 
-                // update current selection
+            // update current selection
+
             currentIndex = index;
-
-            StateHasChanged();
+            flag = false;
+            reDraw();
+            StateContainer.OnChange -= StateHasChanged;
             Console.WriteLine($"Count:{count}");
             flag = false;
-            
+
 
         }
         else
@@ -161,6 +177,9 @@
             Console.WriteLine("Drop - null");
         }
     }
-
+    void reDraw()
+    {
+        StateHasChanged();
+    }
 }
 
