@@ -4,9 +4,19 @@
     {
         private string? savedString;
         private string? isOperand;
+        private List<Item> currentItems;
         private bool flag=false;
         private Item current=new();
 
+        public List<Item> CurrentItems
+        {
+            get { return currentItems; }
+            set
+            {
+                currentItems = value;
+                NotifyStateChanged();
+            }
+        }
         public string Property
         {
             get => savedString ?? string.Empty;

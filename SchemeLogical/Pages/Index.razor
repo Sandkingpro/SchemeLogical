@@ -28,18 +28,18 @@
         base.OnInitialized();
         setDeep(level,item);
     }
-    void setDeep(int level,Item item)
+    void setDeep(int level,Item mitem)
     {
-
-        foreach(Item _item in item.operands)
+         mitem.level = level;
+        if(mitem.op.Equals("or") | mitem.op.Equals("and"))
+        {
+            level += 1;
+        }
+        foreach(Item _item in mitem.operands)
         {
             _item.level = level;
             if (_item.operands != null)
             {
-                if(_item.op.Equals("or") | _item.op.Equals("and"))
-                {
-                    level += 1;
-                }
                 setDeep(level,_item);
             }
         }

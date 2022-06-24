@@ -1,10 +1,13 @@
 ﻿@inject StateContainer StateContainer
+@inject IJSRuntime JS
 @using System.Text.Json;
-<div class="borders" style="width:auto" ondragover="event.preventDefault()" tabindex="1" draggable="true"  @ondrop="@(()=> Drop(operand_index,prev_op,prev_operands))" 
+<div class="borders" style="width:auto;" ondragover="event.preventDefault()" tabindex="1" draggable="true"  @ondrop="@(()=> Drop(operand_index,prev_op,prev_operands))" 
                              @ondragstart="@(()=> StartDrag(prev_op,prev_operands,operand_index))"
                             @ondrop:stopPropagation="true"
                              @ondragstart:stopPropagation="true"
-                            @ondragenter:stopPropagation="true">
+                            @ondragenter:stopPropagation="true"
+                            @ondragend="(()=>DeleleteItem())"
+                             @ondragend:stopPropagation="true">
 
     @if (@op.Equals("and") | @op.Equals("or"))
     {
@@ -34,14 +37,13 @@
         }
         @if (operands != null)
         {
-            
-            
+
             @for (var i = 0; i < operands.Count; i++)
             {
                 int j = i;
                     @if (operands[i].op.Equals("and") | operands[i].op.Equals("or"))
                     {
-                    <Component op="@operands[j].op" operands="@operands[j].operands" operand_index="@j" prev_operands="@operands" prev_op="@op" level="@level"></Component>
+                    <Component op="@operands[j].op" operands="@operands[j].operands" operand_index="@j" prev_operands="@operands" prev_op="@op" level="@level" component="this"></Component>
                 }
                     @if (!operands[i].op.Equals("and") & !operands[i].op.Equals("or"))
                     {
@@ -99,16 +101,19 @@
     [Parameter] 
     public List<Item> operands { get; set; }
     [Parameter] public int level{ get; set; }
+    [Parameter] public Component component { get; set; }
     [Parameter]
     public int operand_index { get; set; }
     [Parameter]
     public List<Item> prev_operands { get; set; }
     [Parameter]
     public String prev_op { get; set; }
-    [Parameter] public EventCallback OnChange { get; set;}
+    private Action? OnChange { get; set;}
+    private void NotifyStateChanged() => OnChange?.Invoke();
     Item item;
     Item current;
     int count;
+    bool visibility = true;
     int currentIndex;
     int currentIndexOperand;
     bool flag=false;
@@ -155,56 +160,31 @@
             currentIndex = int.Parse(StateContainer.Property);
             Console.WriteLine($"Drop index is {index}, move from {currentIndex}");
             // get current item
-            if (!flag_component)
+
+            current = StateContainer.Current;
+            var drop_item = _operands[index];
+            Console.WriteLine(current.level);
+            Console.WriteLine(drop_item.level);
+            if (current.level == drop_item.level)
             {
-                if (StateContainer.PropertyOperand.Equals("or") | StateContainer.PropertyOperand.Equals("and"))
-                {
-                    current = _operands[currentIndex];
-                    _operands[currentIndex]=_operands[index];
-                    _operands[index] = current;
-                    Console.WriteLine(1);
-
-                }
-                if(!StateContainer.PropertyOperand.Equals("or") & !StateContainer.PropertyOperand.Equals("and"))
-                {
-                    if(_operands[index].op.Equals("or") | _operands[index].op.Equals("and"))
-                    {
-                        current = prev_operands[currentIndex];
-                        _operands[currentIndex]=_operands[index];
-                        _operands[index] = current;
-                        StateContainer.Flag = false;
-                        Console.WriteLine("hi");
-                    }
-                    else
-                    {
-
-                        current = StateContainer.Current;
-                        _operands.Add(current);
-
-                        //current = prev_operands[currentIndex];
-                        //_operands.Add(current); 
-
-                        StateContainer.Flag = true;
-                        Console.WriteLine(2);
-                        reDraw();
-                        return;
-                    }
-
-                }
-
+                _operands[currentIndex] = _operands[index];
+                _operands[index] = current;
+                StateContainer.Flag = false;
+                Console.WriteLine("i am here");
             }
             else
             {
-                current=_operands[currentIndex];
-                _operands[currentIndex]=_operands[index];
-                _operands[index] = current;
-                Console.WriteLine(3);
+                current.level = drop_item.level;
+                _operands.Add(current);
+                StateContainer.Flag = true;
+                reDraw();
+                return;
             }
 
+
+
             // update current selection
-            currentIndex=index;
             reDraw();
-            StateContainer.OnChange -= StateHasChanged;
             Console.WriteLine($"Count:{count}");
             StateContainer.Flag = false;
 
@@ -224,16 +204,24 @@
     }
     void DeleleteItem()
     {
-
         flag = StateContainer.Flag;
         Console.WriteLine(flag);
         if (flag)
         {
-            operands.RemoveAt(currentIndex);
+            if(current.op.Equals("or") | current.op.Equals("and"))
+            {
+                prev_operands.RemoveAt(currentIndex);
+                component.StateHasChanged();
+
+            }
+            else
+            {
+                operands.RemoveAt(currentIndex);
+            }
             flag_component = false;
 
         }
-        
+
     }
 }
 
