@@ -1,4 +1,5 @@
 ﻿@inject StateContainer StateContainer
+@using System.Text.Json;
 <div class="borders" style="width:auto" ondragover="event.preventDefault()" tabindex="1" draggable="true"  @ondrop="@(()=> Drop(operand_index,prev_op,prev_operands))" 
                              @ondragstart="@(()=> StartDrag(prev_op,prev_operands,operand_index))"
                             @ondrop:stopPropagation="true"
@@ -40,9 +41,8 @@
                 int j = i;
                     @if (operands[i].op.Equals("and") | operands[i].op.Equals("or"))
                     {
-                    level += 1;
                     <Component op="@operands[j].op" operands="@operands[j].operands" operand_index="@j" prev_operands="@operands" prev_op="@op" level="@level"></Component>
-                    }
+                }
                     @if (!operands[i].op.Equals("and") & !operands[i].op.Equals("or"))
                     {
 
@@ -111,7 +111,8 @@
     int count;
     int currentIndex;
     int currentIndexOperand;
-    Boolean flag=false;
+    bool flag=false;
+    bool flag_component = false;
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -125,13 +126,17 @@
         currentIndex = i;
         StateContainer.Property = currentIndex.ToString();
         current = _operands[currentIndex];
+        StateContainer.Current = current;
+        StateContainer.PropertyOperand = current.op;
         Console.WriteLine(_operands[currentIndex].op);
         Console.WriteLine($"Vsego:{_operands.Count}");
         for (int j = 0; j < _operands.Count; j++)
         {
             Console.WriteLine(_operands[j].op);
         }
-        flag = true;
+        StateContainer.Flag = true;
+        Console.WriteLine($"level:{level}");
+        flag_component = true;
 
 
     }
@@ -144,32 +149,64 @@
 
     void Drop(int j, String _op, List<Item> _operands)
     {
-
         if (item != null)
         {
             var index = j;
             currentIndex = int.Parse(StateContainer.Property);
             Console.WriteLine($"Drop index is {index}, move from {currentIndex}");
             // get current item
-            if (!flag && current==null)
+            if (!flag_component)
             {
-                current = prev_operands[currentIndex];
-                _operands.Add(current);
+                if (StateContainer.PropertyOperand.Equals("or") | StateContainer.PropertyOperand.Equals("and"))
+                {
+                    current = _operands[currentIndex];
+                    _operands[currentIndex]=_operands[index];
+                    _operands[index] = current;
+                    Console.WriteLine(1);
+
+                }
+                if(!StateContainer.PropertyOperand.Equals("or") & !StateContainer.PropertyOperand.Equals("and"))
+                {
+                    if(_operands[index].op.Equals("or") | _operands[index].op.Equals("and"))
+                    {
+                        current = prev_operands[currentIndex];
+                        _operands[currentIndex]=_operands[index];
+                        _operands[index] = current;
+                        StateContainer.Flag = false;
+                        Console.WriteLine("hi");
+                    }
+                    else
+                    {
+
+                        current = StateContainer.Current;
+                        _operands.Add(current);
+
+                        //current = prev_operands[currentIndex];
+                        //_operands.Add(current); 
+
+                        StateContainer.Flag = true;
+                        Console.WriteLine(2);
+                        reDraw();
+                        return;
+                    }
+
+                }
+
             }
             else
             {
+                current=_operands[currentIndex];
                 _operands[currentIndex]=_operands[index];
                 _operands[index] = current;
+                Console.WriteLine(3);
             }
 
             // update current selection
-
-            currentIndex = index;
-            flag = false;
+            currentIndex=index;
             reDraw();
             StateContainer.OnChange -= StateHasChanged;
             Console.WriteLine($"Count:{count}");
-            flag = false;
+            StateContainer.Flag = false;
 
 
         }
@@ -181,13 +218,19 @@
     void reDraw()
     {
         StateHasChanged();
+        string k = JsonSerializer.Serialize(item);
+        Console.WriteLine(k);
+
     }
     void DeleleteItem()
     {
+
+        flag = StateContainer.Flag;
         Console.WriteLine(flag);
         if (flag)
         {
             operands.RemoveAt(currentIndex);
+            flag_component = false;
 
         }
         

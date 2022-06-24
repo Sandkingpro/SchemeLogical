@@ -18,6 +18,7 @@
     static string json2 = json?.Replace("'", "\"");
     public static string json3 = json2?.Replace("-", "_");
     static Item item = JsonSerializer.Deserialize<Item>(json3);
+    int level = 1;
     private void ReDraw()
     {
         StateHasChanged();
@@ -25,7 +26,24 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        item.level = 1;
+        setDeep(level,item);
+    }
+    void setDeep(int level,Item item)
+    {
+
+        foreach(Item _item in item.operands)
+        {
+            _item.level = level;
+            if (_item.operands != null)
+            {
+                if(_item.op.Equals("or") | _item.op.Equals("and"))
+                {
+                    level += 1;
+                }
+                setDeep(level,_item);
+            }
+        }
+       
     }
 
 
