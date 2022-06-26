@@ -43,7 +43,10 @@
                 int j = i;
                     @if (operands[i].op.Equals("and") | operands[i].op.Equals("or"))
                     {
-                    <Component op="@operands[j].op" operands="@operands[j].operands" operand_index="@j" prev_operands="@operands" prev_op="@op" level="@level" component="this"></Component>
+                        <CascadingValue Value="this">
+                            <Component op="@operands[j].op" operands="@operands[j].operands" operand_index="@j" prev_operands="@operands" prev_op="@op" level="@level"></Component>
+                        </CascadingValue>
+                    
                 }
                     @if (!operands[i].op.Equals("and") & !operands[i].op.Equals("or"))
                     {
@@ -99,19 +102,19 @@
     [Parameter]
     public string op { get; set; }
     [Parameter] 
-    public List<Item> operands { get; set; }
+    public List<Item>? operands { get; set; }
     [Parameter] public int level{ get; set; }
-    [Parameter] public Component component { get; set; }
+    [CascadingParameter] public Component? component { get; set; }
     [Parameter]
     public int operand_index { get; set; }
     [Parameter]
-    public List<Item> prev_operands { get; set; }
+    public List<Item>? prev_operands { get; set; }
     [Parameter]
-    public String prev_op { get; set; }
+    public String? prev_op { get; set; }
     private Action? OnChange { get; set;}
     private void NotifyStateChanged() => OnChange?.Invoke();
-    Item item;
-    Item current;
+    Item? item;
+    Item? current;
     int count;
     bool visibility = true;
     int currentIndex;
