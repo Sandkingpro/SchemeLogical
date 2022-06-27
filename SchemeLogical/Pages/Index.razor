@@ -4,11 +4,13 @@
 @using System.IO;
 @using System.Collections;
 @using System.Text.Json;
+@inject StateContainer StateContainer
 @page "/"
 <div class="scheme container-fluid m-5">
-    <Component op="@item.op" operands="@item.operands" level="@item.level"></Component>
-
-
+    <CascadingValue Value="this">
+         <Component op="@item.op" operands="@item.operands" level="@item.level" prev_operands="@item.operands"></Component>
+    </CascadingValue>
+    
 </div>
 
 @code{
@@ -19,6 +21,11 @@
     public static string json3 = json2?.Replace("-", "_");
     static Item item = JsonSerializer.Deserialize<Item>(json3);
     int level = 1;
+    public void getJson()
+    {
+        value = JsonSerializer.Serialize(item);
+        Console.WriteLine(value);
+    }
     private void ReDraw()
     {
         StateHasChanged();
@@ -26,6 +33,7 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
+        StateContainer.Parent = this;
         setDeep(level,item);
     }
     void setDeep(int level,Item mitem)

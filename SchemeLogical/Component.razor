@@ -44,14 +44,12 @@
                     @if (operands[i].op.Equals("and") | operands[i].op.Equals("or"))
                     {
                         <CascadingValue Value="this">
-                            <Component op="@operands[j].op" operands="@operands[j].operands" operand_index="@j" prev_operands="@operands" prev_op="@op" level="@level"></Component>
+                            <Component op="@operands[j].op" operands="@operands[j].operands" operand_index="@j" prev_operands="@operands" prev_op="@op" level="@level" OnDragCallback="@(()=>reDraw())"></Component>
                         </CascadingValue>
                     
                 }
                     @if (!operands[i].op.Equals("and") & !operands[i].op.Equals("or"))
                     {
-
-
                         <div class="move_element" draggable="true" tabindex="1"  ondragover="event.preventDefault()"
                              @ondrop="@(()=> Drop(j,op,operands))"
                              @ondragstart="@(()=> StartDrag(op,operands,j))"
@@ -84,6 +82,14 @@
 
 
                         </div>
+                    @if (j != operands.Count - 1)
+                    {
+                        <div style="height:30px" @ondrop="@(()=> Drop(j,op,operands))" @ondrop:stopPropagation="true"
+                             @ondragstart:stopPropagation="true"
+                             @ondragend="(()=>DeleleteItem())"
+                             @ondragend:stopPropagation="true"></div>
+                    }
+                    
                         
                     }
                 
@@ -94,8 +100,16 @@
 
     }
 
-
 </div>
+@if (operand_index != prev_operands.Count - 1)
+{
+    <div style="height:60px" @ondrop="@(()=> Drop(operand_index,prev_op,prev_operands))"  @ondrop:stopPropagation="true"
+                             @ondragstart:stopPropagation="true"
+                            @ondragenter:stopPropagation="true"
+                            @ondragend="(()=>DeleleteItem())"
+                             @ondragend:stopPropagation="true"></div>
+}
+
 
 
 @code {
@@ -105,12 +119,15 @@
     public List<Item>? operands { get; set; }
     [Parameter] public int level{ get; set; }
     [CascadingParameter] public Component? component { get; set; }
+    [CascadingParameter] public Pages.Index parent { get; set; }
     [Parameter]
     public int operand_index { get; set; }
     [Parameter]
     public List<Item>? prev_operands { get; set; }
     [Parameter]
     public String? prev_op { get; set; }
+    [Parameter]
+    public EventCallback OnDragCallback { get; set; }
     private Action? OnChange { get; set;}
     private void NotifyStateChanged() => OnChange?.Invoke();
     Item? item;
@@ -163,15 +180,15 @@
             currentIndex = int.Parse(StateContainer.Property);
             Console.WriteLine($"Drop index is {index}, move from {currentIndex}");
             // get current item
-
+            Console.WriteLine(index);
             current = StateContainer.Current;
             var drop_item = _operands[index];
             Console.WriteLine(current.level);
             Console.WriteLine(drop_item.level);
             if (current.level == drop_item.level)
             {
-                _operands[currentIndex] = _operands[index];
-                _operands[index] = current;
+                _operands.RemoveAt(currentIndex);
+                _operands.Insert(index, current);
                 StateContainer.Flag = false;
                 Console.WriteLine("i am here");
             }
@@ -198,12 +215,9 @@
             Console.WriteLine("Drop - null");
         }
     }
-    void reDraw()
+    public void reDraw()
     {
         StateHasChanged();
-        string k = JsonSerializer.Serialize(item);
-        Console.WriteLine(k);
-
     }
     void DeleleteItem()
     {
@@ -214,7 +228,7 @@
             if(current.op.Equals("or") | current.op.Equals("and"))
             {
                 prev_operands.RemoveAt(currentIndex);
-                component.StateHasChanged();
+                component.reDraw();
 
             }
             else
@@ -224,6 +238,7 @@
             flag_component = false;
 
         }
+        parent.getJson();
 
     }
 }

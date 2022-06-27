@@ -122,7 +122,7 @@ a, .btn-link {
     margin: 0px 73px;
     justify-content: space-around;
     align-content: space-between;
-    gap: 30px;
+    gap: 0;
 }
 
 #scheme {
