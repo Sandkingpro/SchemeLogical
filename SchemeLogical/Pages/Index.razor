@@ -26,6 +26,11 @@
         value = JsonSerializer.Serialize(item);
         Console.WriteLine(value);
     }
+    public void getJson(Item _item)
+    {
+        value = JsonSerializer.Serialize(_item);
+        Console.WriteLine(value);
+    }
     private void ReDraw()
     {
         StateHasChanged();
@@ -33,7 +38,6 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        StateContainer.Parent = this;
         setDeep(level,item);
     }
     void setDeep(int level,Item mitem)

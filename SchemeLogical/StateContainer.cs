@@ -5,20 +5,9 @@
         private string? savedString;
         private string? isOperand;
         private List<Item> currentItems;
-        private Pages.Index parent;
         private bool flag=false;
         private Item current=new();
 
-        public Pages.Index Parent
-        {
-            get
-            { return parent; }
-            set
-            {
-                parent = value;
-                NotifyStateChanged();
-            }
-        }
         public List<Item> CurrentItems
         {
             get { return currentItems; }

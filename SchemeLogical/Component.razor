@@ -228,18 +228,60 @@
             if(current.op.Equals("or") | current.op.Equals("and"))
             {
                 prev_operands.RemoveAt(currentIndex);
+                if (prev_operands.Count == 1)
+                {
+                    if (component.component != null)
+                    {
+                        component.prev_operands.Add(operands[0]);
+                        component.prev_operands.RemoveAt(0);
+                        component.component.reDraw();
+                    }
+
+                }
                 component.reDraw();
 
             }
             else
             {
                 operands.RemoveAt(currentIndex);
+                if (operands.Count == 1 && prev_operands!=operands)
+                {
+                    prev_operands.Add(operands[0]);
+                    prev_operands.RemoveAt(findOperandCount());
+                    component.reDraw();
+                }
+                if(prev_operands==operands && operands.Count==1)
+                {
+                    item = item.operands[0];
+                    prev_operands = item.operands;
+                    operands = item.operands;
+                    op = item.op;
+                    reDraw();
+                    parent.getJson(item);
+                    return;
+
+                }
+                flag_component = false;
             }
-            flag_component = false;
+
 
         }
         parent.getJson();
 
+    }
+    int findOperandCount()
+    {
+        foreach(var a in prev_operands)
+        {
+            if (a.operands != null)
+            {
+                if (a.operands.Count <= 1)
+                {
+                    return prev_operands.IndexOf(a);
+                }
+            }
+        }
+        return -1;
     }
 }
 
