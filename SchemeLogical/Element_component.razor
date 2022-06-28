@@ -1,0 +1,231 @@
+﻿@inject StateContainer StateContainer
+@using System.Text.Json;
+@if(@item.op.Equals("or") | @item.op.Equals("and") | @item.op.Equals("not"))
+{
+    <div style="height:40px" draggable="true" tabindex="1"  ondragover="event.preventDefault()" @ondrop="@(()=> Drop())"
+                             @ondragstart="@(()=> StartDrag())"
+                             @ondrop:stopPropagation="true"
+                             @ondragstart:stopPropagation="true"
+                             @ondragend="(()=>DeleteItem())"
+                             @ondragend:stopPropagation="true"></div>
+    <div class="borders" style="width:auto;" ondragover="event.preventDefault()" tabindex="1" draggable="true" @ondrop="@(()=> Drop())" 
+                             @ondragstart="@(()=> StartDrag())"
+                            @ondrop:stopPropagation="true"
+                             @ondragstart:stopPropagation="true"
+                             @ondragend="(()=>DeleteItem())"
+                             @ondragend:stopPropagation="true">
+         <svg height="100%" width="16" viewBox="0 0 16 219" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            @if (@item.op.Equals("or"))
+            {
+                <path d="M16 1H1V218H16" stroke="#43633D" stroke-width="2px" vector-effect="non-scaling-stroke" />
+            }
+            @if (@item.op.Equals("and"))
+            {
+                <path d="M16 1H1V218H16" stroke="#2649C5" stroke-width="2px" vector-effect="non-scaling-stroke" />
+            }
+             @if (@item.op.Equals("not"))
+            {
+                <path d="M16 1H1V218H16" stroke="#683A9D" stroke-width="2px" vector-effect="non-scaling-stroke" />
+            }
+        </svg>
+        @if (@item.op.Equals("or"))
+        {
+            <div class="border_move"  style="background: #DDE7DB; border: 1px solid #F5F7FB;width:60px;">
+                <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;">
+                <p style="margin-left: 0; margin-top: 15px;">@item.op.ToUpper()</p>
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                        <img src="/css/img/arrow_up.svg"   @onclick="@(()=> nextOperand())" @onclick:stopPropagation="true"/>
+                        <img src="/css/img/arrow_down.svg"  @onclick="@(()=> prevOperand())" @onclick:stopPropagation="true"/>
+                </div>
+            </div>
+        }
+        @if (item.op.Equals("not"))
+        {
+            <div class="border_move"  style="background: #DDD1EB;border: 1px solid #FFFFFF;width:70px">
+                <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;">
+                <p style="margin-left: 0; margin-top: 15px;">@item.op.ToUpper()</p>
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                        <img src="/css/img/arrow_up.svg"  @onclick="@(()=> nextOperand())" @onclick:stopPropagation="true" />
+                        <img src="/css/img/arrow_down.svg"  @onclick="@(()=> prevOperand())" @onclick:stopPropagation="true"/>
+                </div>
+            </div>
+        }
+        @if(@item.op.Equals("and"))
+        {
+            <div class="border_move" style="width:70px;">
+                <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;">
+                <p style="margin-left: 0; margin-top: 15px;">@item.op.ToUpper()</p>
+                <div style="display:flex;flex-direction:column;gap:3px">
+                        <img src="/css/img/arrow_up.svg"  @onclick="@(()=> nextOperand())" @onclick:stopPropagation="true"/>
+                        <img src="/css/img/arrow_down.svg"  @onclick="@(()=> prevOperand())" @onclick:stopPropagation="true"/>
+                </div>
+            </div>
+        }
+
+       @foreach (Item _item in @item.operands)
+       {
+             <CascadingValue Value="this">
+                 <Element_component item="_item"></Element_component>
+            </CascadingValue>
+            count++;
+       }
+    
+
+    </div>
+}
+else
+{
+    <div style="height:30px" draggable="true" tabindex="1"  ondragover="event.preventDefault()" @ondrop="@(()=> Drop())"
+                             @ondragstart="@(()=> StartDrag())"
+                             @ondrop:stopPropagation="true"
+                             @ondragstart:stopPropagation="true"
+                             @ondragend="(()=>DeleteItem())"
+                             @ondragend:stopPropagation="true"></div>
+    <div class="move_element" draggable="true" tabindex="1"  ondragover="event.preventDefault()" @ondrop="@(()=> Drop())"
+                             @ondragstart="@(()=> StartDrag())"
+                             @ondrop:stopPropagation="true"
+                             @ondragstart:stopPropagation="true"
+                             @ondragend="(()=>DeleteItem())"
+                             @ondragend:stopPropagation="true">
+        @if(@item.operands[0].field_string!=null){
+            <button class="elem">
+                @item.operands[0].field_string @item.op
+                @item.operands[1].value_string
+            </button>
+        }
+        @if(@item.operands[0].field_float!=null){
+            <button class="elem">
+                @item.operands[0].field_float @item.op
+                @item.operands[1].value_float
+            </button>
+            
+        }
+        @if(@item.operands[0].field_varchar!=null){
+            <button class="elem">
+                @item.operands[0].field_varchar @item.op
+                @item.operands[1].value_varchar
+            </button>
+        }
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public Item item { get; set; }
+    [CascadingParameter] public Element_component component { get; set; }
+    bool flag=false;
+    bool flag_component = false;
+    int count = 0;
+    private void StartDrag()
+    {
+        StateContainer.Current = item;
+        StateContainer.Flag = true;
+        flag_component = true;
+    }
+    private void Drop()
+    {
+        var current = StateContainer.Current;
+        if (current.level == item.level)
+        {
+            var index = component.item.operands.IndexOf(item);
+            component.item.operands.Remove(current);
+            component.item.operands.Insert(index, current);
+            component.StateHasChanged();
+            StateContainer.Flag = false;
+        }
+        else
+        {
+            current.level = item.level;
+            component.item.operands.Add(current);
+            component.StateHasChanged();
+            StateContainer.Flag = true;
+            Console.WriteLine("я тут");
+        }
+        getJson();
+
+    }
+    private void DeleteItem()
+    {
+        flag = StateContainer.Flag;
+        if (flag)
+        {
+            component.item.operands.Remove(item);
+            component.StateHasChanged();
+        }
+    }
+    private void nextOperand()
+    {
+        if (item.op.Equals("or"))
+        {
+            item.op = "and";
+            count++;
+            Console.WriteLine(count);
+            Console.WriteLine(item.op);
+            //OnParametersSet();
+
+
+        }
+        else if (item.op.Equals("and"))
+        {
+            item.op = "not";
+            Console.WriteLine(count);
+            Console.WriteLine(item.op);
+            //OnParametersSet();
+
+        }
+        else if (item.op.Equals("not"))
+        {
+            item.op = "or";
+            Console.WriteLine(count);
+            Console.WriteLine(item.op);
+            //OnParametersSet();
+
+
+        }
+        StateHasChanged();
+        getJson();
+    }
+    private void prevOperand()
+    {
+        if (item.op.Equals("or"))
+        {
+            item.op = "not";
+            count++;
+            Console.WriteLine(count);
+            Console.WriteLine(item.op);
+            //OnParametersSet();
+
+
+        }
+        else if (item.op.Equals("and"))
+        {
+            item.op = "or";
+            Console.WriteLine(count);
+            Console.WriteLine(item.op);
+            //OnParametersSet();
+
+
+        }
+        else if (item.op.Equals("not"))
+        {
+            item.op = "and";
+            Console.WriteLine(count);
+            Console.WriteLine(item.op);
+            //OnParametersSet();
+
+        }
+        StateHasChanged();
+        getJson();
+    }
+    private void getJson()
+    {
+        var deserialize_object = this;
+        while (deserialize_object.component != null)
+        {
+            deserialize_object = deserialize_object.component;
+        }
+        string json = JsonSerializer.Serialize(deserialize_object.item);
+        Console.WriteLine(json);
+    }
+}

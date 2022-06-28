@@ -7,15 +7,13 @@
 @inject StateContainer StateContainer
 @page "/"
 <div class="scheme container-fluid m-5">
-    <CascadingValue Value="this">
-         <Component op="@item.op" operands="@item.operands" level="@item.level" prev_operands="@item.operands"></Component>
-    </CascadingValue>
+    <Element_component item="@item"></Element_component>
     
 </div>
 
 @code{
 
-    static string value = "{ 'op': 'and','operands': [{ 'op': 'and', 'operands': [{'op': '=', 'operands': [{ 'field-string': 'path' },{ 'value-string': '/json' }]},{'op': '=', 'operands': [{ 'field-string': 'paths' },{ 'value-string': '/json' }]},{ 'op': '>=','operands': [{ 'field-float': 'latitude'}, { 'value-float': 57.89331022258886}]},{'op':'or','operands':[{'op': '=', 'operands': [{ 'field-string': 'path' },{ 'value-string': '/json' }]},{ 'op': '>=','operands': [{ 'field-float': 'latitude'}, { 'value-float': 57.89331022258886}]}]}]},{'op': '=', 'operands': [{'field-varchar': 'stream'},{'value-varchar': 'checkRegistration'}]}]}";
+    static string value = "{ 'op': 'not','operands': [{ 'op': 'and', 'operands': [{'op': '=', 'operands': [{ 'field-string': 'path' },{ 'value-string': '/json' }]},{'op': '=', 'operands': [{ 'field-string': 'paths' },{ 'value-string': '/json' }]},{ 'op': '>=','operands': [{ 'field-float': 'latitude'}, { 'value-float': 57.89331022258886}]},{'op':'or','operands':[{'op': '=', 'operands': [{ 'field-string': 'path' },{ 'value-string': '/json' }]},{ 'op': '>=','operands': [{ 'field-float': 'latitude'}, { 'value-float': 57.89331022258886}]}]}]},{'op': '=', 'operands': [{'field-varchar': 'stream'},{'value-varchar': 'checkRegistration'}]}]}";
     static string json = value?.Replace(" ", "");
     static string json2 = json?.Replace("'", "\"");
     public static string json3 = json2?.Replace("-", "_");

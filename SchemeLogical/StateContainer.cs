@@ -5,9 +5,17 @@
         private string? savedString;
         private string? isOperand;
         private List<Item> currentItems;
+        private bool allow_zone=false;
         private bool flag=false;
         private Item current=new();
 
+        public bool AllowZone
+        {
+            get { return allow_zone; }
+            set { allow_zone = value;
+                NotifyStateChanged();
+            }
+        }
         public List<Item> CurrentItems
         {
             get { return currentItems; }

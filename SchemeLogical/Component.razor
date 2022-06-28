@@ -1,15 +1,16 @@
 ﻿@inject StateContainer StateContainer
 @inject IJSRuntime JS
 @using System.Text.Json;
-<div class="borders" style="width:auto;" ondragover="event.preventDefault()" tabindex="1" draggable="true"  @ondrop="@(()=> Drop(operand_index,prev_op,prev_operands))" 
-                             @ondragstart="@(()=> StartDrag(prev_op,prev_operands,operand_index))"
+<div class="ccfa_query">
+<div class="borders" style="width:auto;" ondragover="event.preventDefault()" tabindex="1" draggable="true"  @ondrop="@(()=> Drop(operand_index,op,prev_operands))" 
+                             @ondragstart="@(()=> StartDrag(op,prev_operands,operand_index))"
                             @ondrop:stopPropagation="true"
                              @ondragstart:stopPropagation="true"
-                            @ondragenter:stopPropagation="true"
+                             @ondragenter="(()=>IsAllowedZone())"
                             @ondragend="(()=>DeleleteItem())"
                              @ondragend:stopPropagation="true">
 
-    @if (@op.Equals("and") | @op.Equals("or"))
+    @if (@op.Equals("and") | @op.Equals("or") | @op.Equals("not"))
     {
         <svg height="100%" width="16" viewBox="0 0 16 219" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
             @if (@op.Equals("or"))
@@ -20,19 +21,42 @@
             {
                 <path d="M16 1H1V218H16" stroke="#2649C5" stroke-width="2px" vector-effect="non-scaling-stroke" />
             }
+             @if (@op.Equals("not"))
+            {
+                <path d="M16 1H1V218H16" stroke="#683A9D" stroke-width="2px" vector-effect="non-scaling-stroke" />
+            }
         </svg>
         @if (@op.Equals("or"))
         {
-            <div class="border_move"  style="background: #DDE7DB; border: 1px solid #F5F7FB; ">
+            <div class="border_move"  style="background: #DDE7DB; border: 1px solid #F5F7FB;width:60px;">
                 <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;">
-                <p style="margin-left: 5px; margin-top: 15px;">@op.ToUpper()</p>
+                <p style="margin-left: 0; margin-top: 15px;">@op.ToUpper()</p>
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                        <img src="/css/img/arrow_up.svg" @onclick="@(()=> nextOperand(op))" @onclick:stopPropagation="true"/>
+                        <img src="/css/img/arrow_down.svg" />
+                </div>
             </div>
         }
-        else
+        @if (@op.Equals("not"))
         {
-            <div class="border_move">
+            <div class="border_move"  style="background: #DDD1EB;border: 1px solid #FFFFFF;width:70px">
                 <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;">
-                <p style="margin-left: 5px; margin-top: 15px;">@op.ToUpper()</p>
+                <p style="margin-left: 0; margin-top: 15px;">@op.ToUpper()</p>
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                        <img src="/css/img/arrow_up.svg"  @onclick="@(()=> nextOperand(op))" @onclick:stopPropagation="true" />
+                        <img src="/css/img/arrow_down.svg" />
+                </div>
+            </div>
+        }
+        @if(@op.Equals("and"))
+        {
+            <div class="border_move" style="width:70px;">
+                <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;">
+                <p style="margin-left: 0; margin-top: 15px;">@op.ToUpper()</p>
+                <div style="display:flex;flex-direction:column;gap:3px">
+                        <img src="/css/img/arrow_up.svg"  @onclick="@(()=> nextOperand(op))"/>
+                        <img src="/css/img/arrow_down.svg"/>
+                </div>
             </div>
         }
         @if (operands != null)
@@ -80,7 +104,6 @@
                                 </button>
                             }
 
-
                         </div>
                     @if (j != operands.Count - 1)
                     {
@@ -110,7 +133,7 @@
                              @ondragend:stopPropagation="true"></div>
 }
 
-
+</div>
 
 @code {
     [Parameter]
@@ -138,16 +161,22 @@
     int currentIndexOperand;
     bool flag=false;
     bool flag_component = false;
+    bool allowed_zone = false;
     protected override void OnInitialized()
     {
-        base.OnInitialized();
         item = new Item(op, operands);
+        base.OnInitialized();
         StateContainer.OnChange += StateHasChanged;
+    }
+    protected override void OnParametersSet()
+    {
+        op = item.op;
     }
     private void StartDrag(String _op, List<Item> _operands,int i)
     {
         Console.WriteLine(i);
         item = new Item(_op, _operands);
+        allowed_zone = StateContainer.AllowZone;
         currentIndex = i;
         StateContainer.Property = currentIndex.ToString();
         current = _operands[currentIndex];
@@ -191,6 +220,7 @@
                 _operands.Insert(index, current);
                 StateContainer.Flag = false;
                 Console.WriteLine("i am here");
+                parent.getJson();
             }
             else
             {
@@ -223,9 +253,9 @@
     {
         flag = StateContainer.Flag;
         Console.WriteLine(flag);
-        if (flag)
+        if (flag && allowed_zone)
         {
-            if(current.op.Equals("or") | current.op.Equals("and"))
+            if(current.op.Equals("or") | current.op.Equals("and") | current.op.Equals("not"))
             {
                 prev_operands.RemoveAt(currentIndex);
                 if (prev_operands.Count == 1)
@@ -266,6 +296,7 @@
 
 
         }
+        StateContainer.AllowZone = false;
         parent.getJson();
 
     }
@@ -282,6 +313,43 @@
             }
         }
         return -1;
+    }
+    private void nextOperand(string _op)
+    {
+        Console.WriteLine("нажато");
+        if (op.Equals("or"))
+        {
+            op = "and";
+            count++;
+            Console.WriteLine(count);
+            Console.WriteLine(op);
+            //OnParametersSet();
+            return;
+
+        }
+        if (op.Equals("and"))
+        {
+            op = "not";
+            Console.WriteLine(count);
+            Console.WriteLine(op);
+            //OnParametersSet();
+            StateHasChanged();
+            return;
+        }
+        if (op.Equals("not"))
+        {
+            op = "or";
+            Console.WriteLine(count);
+            Console.WriteLine(op);
+            //OnParametersSet();
+            StateHasChanged();
+            return;
+        }
+    }
+    private void IsAllowedZone()
+    {
+        allowed_zone = true;
+        StateContainer.AllowZone = allowed_zone;
     }
 }
 
