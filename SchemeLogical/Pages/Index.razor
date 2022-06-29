@@ -55,7 +55,8 @@
             js = k.ToJsonString();
 
         }
-        parseJson(js,jsonNode,root);
+        List<Element> operands = new List<Element>();
+        parseJson(js,jsonNode,root,operands);
 
     }
     void setDeep(int level,Item mitem)
@@ -75,12 +76,11 @@
         }
 
     }
-    void parseJson(string js,JsonNode jsonNode,JsonNode root)
+    void parseJson(string js,JsonNode jsonNode,JsonNode root,List<Element> operands)
     {
         jsonNode=JsonNode.Parse(js);
         root = jsonNode.Root;
         JsonArray o = root.AsArray();
-        List<Element> operands = new List<Element>();
         foreach (var t in o)
         {
             Element _element = new Element();
@@ -98,18 +98,20 @@
                 }
                 if (m.Key.Equals("operands"))
                 {
-                    parseJson(m.Value.ToJsonString(), jsonNode, root);
+                    parseJson(m.Value.ToJsonString(), jsonNode, root,operands);
                 }
             }
             operands.Add(_element);
+            element.operands = operands;
+            var new_js = JsonSerializer.Serialize(element);
+            Console.WriteLine(new_js);
+
         }
-        element.operands = operands;
-        var new_json = JsonSerializer.Serialize(element);
-        Console.WriteLine(new_json);
+        
     }
            
 
-    }
+    
 
 
 

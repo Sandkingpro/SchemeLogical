@@ -119,7 +119,7 @@ else
                              @ondrop:stopPropagation="true"
                              @ondragstart:stopPropagation="true"
                              @ondragend="(()=>DeleteItem())"
-                             @ondragend:stopPropagation="true"></div>
+                           @ondragend:stopPropagation="true"></div>
 }
 
 
@@ -145,19 +145,36 @@ else
         {
             if (current.level == item.level)
             {
-                var index = component.item.operands.IndexOf(item);
-                component.item.operands.Remove(current);
-                component.item.operands.Insert(index, current);
-                component.StateHasChanged();
-                StateContainer.Flag = false;
-                StateContainer.AllowZone = false;
+                try
+                {
+                    var index = component.item.operands.IndexOf(item);
+                    component.item.operands.Remove(current);
+                    component.item.operands.Insert(index, current);
+                    component.StateHasChanged();
+                    StateContainer.Flag = false;
+                    StateContainer.AllowZone = false;
+                }
+                catch
+                {
+                    Console.WriteLine("it is root");
+                }
+
             }
             else
             {
+
                 current.level = item.level;
-                component.item.operands.Add(current);
+                if (component != null)
+                {
+                    component.item.operands.Add(current);
+                    component.StateHasChanged();
+                }
+                else
+                {
+                    item.operands.Add(current);
+                    StateHasChanged();
+                }
                 StateContainer.AllowZone = true;
-                component.StateHasChanged();
                 StateContainer.Flag = true;
                 Console.WriteLine("я тут");
             }
@@ -301,3 +318,4 @@ else
         Console.WriteLine(json);
     }
 }
+
