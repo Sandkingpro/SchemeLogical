@@ -46,7 +46,7 @@
         String js="";
         foreach(var value in keyValuePairs)
         {
-            Console.WriteLine(value.Key+"-"+value.Value);
+            Console.WriteLine(value.Key);
             var k = value.Value;
             if (value.Key.Equals("op"))
             {
@@ -57,12 +57,14 @@
         }
         List<Element> operands = new List<Element>();
         parseJson(js,jsonNode,root,operands);
+        var new_js = JsonSerializer.Serialize(element);
+        Console.WriteLine(new_js);
 
     }
     void setDeep(int level,Item mitem)
     {
         mitem.level = level;
-        if(mitem.op.Equals("or") | mitem.op.Equals("and"))
+        if(mitem.op.Equals("or") | mitem.op.Equals("and") | mitem.op.Equals("not"))
         {
             level += 1;
         }
@@ -76,6 +78,7 @@
         }
 
     }
+    int count = 1;
     void parseJson(string js,JsonNode jsonNode,JsonNode root,List<Element> operands)
     {
         jsonNode=JsonNode.Parse(js);
@@ -86,27 +89,38 @@
             Element _element = new Element();
             foreach (var m in t.AsObject())
             {
-                Console.WriteLine(m.Key + "-" + m.Value);
+                if (!m.Key.Equals("operands"))
+                {
+                    Console.WriteLine(m.Value.ToString()+";level:"+count);
+                }
+
                 if (m.Key.Equals("op"))
                 {
                     _element.operandValue = m.Value.ToString();
+                    if(m.Value.ToString().Equals("or") | m.Value.ToString().Equals("and") | m.Value.ToString().Equals("not"))
+                    {
+                        count++;
+                    }
                 }
-                if (!m.Key.Equals("op") & !m.Key.Equals("operands"))
+                if(m.Key.Contains("string") | m.Key.Contains("char") | m.Key.Contains("float"))
                 {
+                    _element.type = m.Value.ToString();
                     _element.key = m.Key;
+                }
+                if (m.Key.Contains("value"))
+                {
                     _element.value = m.Value.ToString();
                 }
+
                 if (m.Key.Equals("operands"))
                 {
-                    parseJson(m.Value.ToJsonString(), jsonNode, root,operands);
+                    parseJson(m.Value.ToJsonString(), jsonNode, root, element.operands);
                 }
             }
-            operands.Add(_element);
-            element.operands = operands;
-            var new_js = JsonSerializer.Serialize(element);
-            Console.WriteLine(new_js);
+
 
         }
+        
         
     }
            

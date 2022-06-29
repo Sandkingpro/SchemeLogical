@@ -162,8 +162,14 @@ else
             }
             else
             {
-
-                current.level = item.level;
+                if (item.level != 1)
+                {
+                    current.level = item.level;
+                }
+                else
+                {
+                    current.level = 2;
+                }
                 if (component != null)
                 {
                     component.item.operands.Add(current);
@@ -179,7 +185,7 @@ else
                 Console.WriteLine("я тут");
             }
             getJson();
-            
+
         }
         else
         {
@@ -192,6 +198,7 @@ else
     {
         flag = StateContainer.Flag;
         Console.WriteLine(StateContainer.AllowZone);
+        Console.WriteLine(StateContainer.Flag);
         if (flag & StateContainer.AllowZone)
         {
 
@@ -209,6 +216,8 @@ else
                 else
                 {
                     component.component.item.operands.Add(component.item.operands[0]);
+                    var del_elem = component.component.item.operands[findOperandCount()];
+                    component.item.operands[0].level = del_elem.level;
                     component.component.item.operands.Remove(component.component.item.operands[findOperandCount()]);
                     component.component.StateHasChanged();
                 }
