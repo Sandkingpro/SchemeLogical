@@ -2,7 +2,7 @@
 @using System.Text.Json;
 @if(@item.op.Equals("or") | @item.op.Equals("and") | @item.op.Equals("not"))
 {
-    <div style="height:40px" draggable="true" tabindex="1"  ondragover="event.preventDefault()" @ondrop="@(()=> Drop())"
+    <div style="height:20px" draggable="true" tabindex="1"  ondragover="event.preventDefault()" @ondrop="@(()=> Drop())"
                              @ondragstart="@(()=> StartDrag())"
                              @ondrop:stopPropagation="true"
                              @ondragstart:stopPropagation="true"
@@ -72,10 +72,16 @@
     
 
     </div>
+    <div style="height:20px" draggable="true" tabindex="1"  ondragover="event.preventDefault()" @ondrop="@(()=> Drop())"
+                             @ondragstart="@(()=> StartDrag())"
+                             @ondrop:stopPropagation="true"
+                             @ondragstart:stopPropagation="true"
+                             @ondragend="(()=>DeleteItem())"
+                             @ondragend:stopPropagation="true"></div>
 }
 else
 {
-    <div style="height:30px" draggable="true" tabindex="1"  ondragover="event.preventDefault()" @ondrop="@(()=> Drop())"
+    <div style="height:10px" draggable="true" tabindex="1"  ondragover="event.preventDefault()" @ondrop="@(()=> Drop())"
                              @ondragstart="@(()=> StartDrag())"
                              @ondrop:stopPropagation="true"
                              @ondragstart:stopPropagation="true"
@@ -87,6 +93,7 @@ else
                              @ondragstart:stopPropagation="true"
                              @ondragend="(()=>DeleteItem())"
                              @ondragend:stopPropagation="true">
+                             <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;" />
         @if(@item.operands[0].field_string!=null){
             <button class="elem">
                 @item.operands[0].field_string @item.op
@@ -107,6 +114,12 @@ else
             </button>
         }
     </div>
+    <div style="height:10px" draggable="true" tabindex="1"  ondragover="event.preventDefault()" @ondrop="@(()=> Drop())"
+                             @ondragstart="@(()=> StartDrag())"
+                             @ondrop:stopPropagation="true"
+                             @ondragstart:stopPropagation="true"
+                             @ondragend="(()=>DeleteItem())"
+                             @ondragend:stopPropagation="true"></div>
 }
 
 
@@ -116,6 +129,7 @@ else
     [CascadingParameter] public Element_component component { get; set; }
     bool flag=false;
     bool flag_component = false;
+    bool flag_acceptable_zone = false;
     int count = 0;
     private void StartDrag()
     {
@@ -126,33 +140,81 @@ else
     private void Drop()
     {
         var current = StateContainer.Current;
-        if (current.level == item.level)
+        Console.WriteLine(item.op);
+        if (item != null)
         {
-            var index = component.item.operands.IndexOf(item);
-            component.item.operands.Remove(current);
-            component.item.operands.Insert(index, current);
-            component.StateHasChanged();
-            StateContainer.Flag = false;
+            if (current.level == item.level)
+            {
+                var index = component.item.operands.IndexOf(item);
+                component.item.operands.Remove(current);
+                component.item.operands.Insert(index, current);
+                component.StateHasChanged();
+                StateContainer.Flag = false;
+                StateContainer.AllowZone = false;
+            }
+            else
+            {
+                current.level = item.level;
+                component.item.operands.Add(current);
+                StateContainer.AllowZone = true;
+                component.StateHasChanged();
+                StateContainer.Flag = true;
+                Console.WriteLine("я тут");
+            }
+            getJson();
+            
         }
         else
         {
-            current.level = item.level;
-            component.item.operands.Add(current);
-            component.StateHasChanged();
-            StateContainer.Flag = true;
-            Console.WriteLine("я тут");
+            StateContainer.AllowZone = false;
         }
-        getJson();
+
 
     }
     private void DeleteItem()
     {
         flag = StateContainer.Flag;
-        if (flag)
+        Console.WriteLine(StateContainer.AllowZone);
+        if (flag & StateContainer.AllowZone)
         {
+
             component.item.operands.Remove(item);
+            if (component.item.operands.Count == 1)
+            {
+                if (component.component == null)
+                {
+                    if(!component.item.op.Equals("not"))
+                    {
+                        component.item = component.item.operands[0];
+                    }
+
+                }
+                else
+                {
+                    component.component.item.operands.Add(component.item.operands[0]);
+                    component.component.item.operands.Remove(component.component.item.operands[findOperandCount()]);
+                    component.component.StateHasChanged();
+                }
+
+            }
+            StateContainer.Current = new();
+            StateContainer.AllowZone = false;
             component.StateHasChanged();
         }
+    }
+    int findOperandCount()
+    {
+        foreach(var a in component.component.item.operands)
+        {
+            if (a.operands != null)
+            {
+                if (a.operands.Count <= 1)
+                {
+                    return component.component.item.operands.IndexOf(a);
+                }
+            }
+        }
+        return -1;
     }
     private void nextOperand()
     {
@@ -217,6 +279,16 @@ else
         }
         StateHasChanged();
         getJson();
+    }
+    private void not_acceptable_zone()
+    {
+        flag_acceptable_zone = false;
+        StateContainer.AllowZone = flag_acceptable_zone;
+    }
+    private void acceptable_zone()
+    {
+        flag_acceptable_zone = true;
+        StateContainer.AllowZone = flag_acceptable_zone;
     }
     private void getJson()
     {

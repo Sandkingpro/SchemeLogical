@@ -70,10 +70,11 @@ a, .btn-link {
     margin: 0px 29px;
     z-index: 1000;
     cursor: pointer;
+    align-items:center;
 }
 
     .move_element img {
-        margin-top: -10px;
+        
     }
 
 .butn {

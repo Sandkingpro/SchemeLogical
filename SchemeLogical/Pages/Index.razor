@@ -4,10 +4,12 @@
 @using System.IO;
 @using System.Collections;
 @using System.Text.Json;
+@using System.Text.Json.Nodes
 @inject StateContainer StateContainer
 @page "/"
 <div class="scheme container-fluid m-5">
     <Element_component item="@item"></Element_component>
+  
     
 </div>
 
@@ -19,6 +21,7 @@
     public static string json3 = json2?.Replace("-", "_");
     static Item item = JsonSerializer.Deserialize<Item>(json3);
     int level = 1;
+    Element element = new Element();
     public void getJson()
     {
         value = JsonSerializer.Serialize(item);
@@ -37,10 +40,27 @@
     {
         base.OnInitialized();
         setDeep(level,item);
+        JsonNode jsonNode = JsonNode.Parse(json3);
+        JsonNode root = jsonNode.Root;
+        JsonObject keyValuePairs = root.AsObject();
+        String js="";
+        foreach(var value in keyValuePairs)
+        {
+            Console.WriteLine(value.Key+"-"+value.Value);
+            var k = value.Value;
+            if (value.Key.Equals("op"))
+            {
+                element.operandValue = value.Value.ToString();
+            }
+            js = k.ToJsonString();
+
+        }
+        parseJson(js,jsonNode,root);
+
     }
     void setDeep(int level,Item mitem)
     {
-         mitem.level = level;
+        mitem.level = level;
         if(mitem.op.Equals("or") | mitem.op.Equals("and"))
         {
             level += 1;
@@ -53,7 +73,42 @@
                 setDeep(level,_item);
             }
         }
-       
+
+    }
+    void parseJson(string js,JsonNode jsonNode,JsonNode root)
+    {
+        jsonNode=JsonNode.Parse(js);
+        root = jsonNode.Root;
+        JsonArray o = root.AsArray();
+        List<Element> operands = new List<Element>();
+        foreach (var t in o)
+        {
+            Element _element = new Element();
+            foreach (var m in t.AsObject())
+            {
+                Console.WriteLine(m.Key + "-" + m.Value);
+                if (m.Key.Equals("op"))
+                {
+                    _element.operandValue = m.Value.ToString();
+                }
+                if (!m.Key.Equals("op") & !m.Key.Equals("operands"))
+                {
+                    _element.key = m.Key;
+                    _element.value = m.Value.ToString();
+                }
+                if (m.Key.Equals("operands"))
+                {
+                    parseJson(m.Value.ToJsonString(), jsonNode, root);
+                }
+            }
+            operands.Add(_element);
+        }
+        element.operands = operands;
+        var new_json = JsonSerializer.Serialize(element);
+        Console.WriteLine(new_json);
+    }
+           
+
     }
 
 
