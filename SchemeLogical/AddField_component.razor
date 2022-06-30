@@ -154,7 +154,6 @@ else
         _item.op = _op;
         _item.operands = new List<Item>();
         StateContainer.Current = _item;
-        StateContainer.Flag = true;
         StateContainer.New_Operand = true;
     }
     void EndDrag()
@@ -171,5 +170,6 @@ else
     public void setItem(Item _item)
     {
         item = _item;
+        
     }
 }

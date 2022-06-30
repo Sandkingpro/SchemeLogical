@@ -172,7 +172,7 @@ else
                 item.operands.Add(current);
                 StateHasChanged();
             }
-
+            Console.WriteLine("pizdec");
             StateContainer.New_Operand = false;
         }
         else
@@ -181,8 +181,8 @@ else
             {
                 if((item.op.Equals("or") | item.op.Equals("and") | item.op.Equals("not")) & item.operands.Count == 0)
                 {
-                            
-                    current.level += 1;
+
+                    current.level = item.level + 1;
                     item.operands.Add(current);
                     StateContainer.AllowZone = true;
                     StateContainer.Flag = true;
