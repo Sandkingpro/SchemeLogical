@@ -164,3 +164,107 @@ svg {
     svg path {
         border: 2px solid;
     }
+.key_element {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 8px 16px;
+    height: 40px;
+    /* Global/09. White */
+
+    background: #FFFFFF;
+    /* Secondary 50% */
+
+    border: 1px solid #B7BDD0;
+    border-radius: 4.8px;
+    /* Inside auto layout */
+
+    flex: none;
+    order: 0;
+    align-self: stretch;
+    flex-grow: 0;
+    appearance: none;
+    background-image: url('img/select_button.svg');
+    background-repeat: no-repeat, repeat;
+    background-position: right .7em top 50%, 0 0;
+    background-size: .65em auto, 100%;
+    outline: none;
+}
+.value_element {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 8px 16px;
+    height: 40px;
+    /* Global/09. White */
+
+    background: #FFFFFF;
+    /* Secondary 50% */
+
+    border: 1px solid #B7BDD0;
+    border-radius: 4.8px;
+    /* Inside auto layout */
+
+    flex: none;
+    order: 0;
+    align-self: stretch;
+    flex-grow: 0;
+    font-family: 'Segoe UI';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+
+    color: #2D334D;
+}
+    .key_element option {
+        font-family: 'Segoe UI';
+        font-style: normal;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 24px;
+        color: #2D334D;
+    }
+.fields_container{
+    display:flex;
+    flex-direction:row;
+    gap:20px;
+}
+.add_button {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 93px;
+    height: 40px;
+    /* Primary */
+
+    background: #3961FF;
+    border-radius: 4px;
+    border: 0;
+    /* Inside auto layout */
+
+    flex: none;
+    order: 3;
+    flex-grow: 0;
+}
+    .add_button span {
+        font-family: 'Segoe UI';
+        font-style: normal;
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 24px;
+        /* identical to box height, or 150% */
+
+        display: flex;
+        align-items: center;
+        text-align: center;
+        /* Global white */
+
+        color: #FFFFFF;
+        /* Inside auto layout */
+
+        flex: none;
+        order: 1;
+        flex-grow: 0;
+    }

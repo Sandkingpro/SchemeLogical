@@ -1,0 +1,175 @@
+﻿@using System.Text.Json;
+@inject StateContainer StateContainer
+<div style="display:flex;flex-direction:row;gap:11px">
+    <div class="fields_container">
+        <select class="key_element" style="width:220px" @onchange="@((ChangeEventArgs __e) => key = __e?.Value?.ToString())">
+                <option value="login">login</option>
+                <option value="password">password</option>
+        </select>
+        <select class="key_element" style="width:131px" @onchange="@((ChangeEventArgs __e) => op = __e?.Value?.ToString())">
+            <option value="=">=</option>
+             <option value="!=">!=</option>
+             <option value=">">&gt</option>
+             <option value=">=">&gt=</option>
+             <option value="<">&lt</option>
+             <option value="<=">&lt=</option>
+        </select>
+        <div class="value_element" style="width:328px">
+            <input style="height:100%;width:100%;border:0;outline:none;" value="@InputValue" @onchange="@((ChangeEventArgs e) => InputValue = e.Value.ToString())"/>
+        </div>
+    </div>
+    <button class="add_button" @onclick="@(()=>AddElement())">
+        <span>
+            Add Field
+        </span>
+    </button>
+    <button class="add_button" @onclick="@(()=>getJson())">
+        <span>
+            Get Json
+        </span>
+    </button>
+</div>
+<div style="display:flex;flex-direction:row;margin-top:40px;margin-bottom:45px;width:auto;">
+    <div class="borders" style="width:auto;" draggable="true" @ondragend="@(()=>EndDrag())" @ondragend:stopPropagation="true"  @ondragstart="@(()=> StartDrag("not"))" @ondragstart:stopPropagation="true">
+         <svg height="100%" width="16" viewBox="0 0 16 219" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+              <path d="M16 1H1V218H16" stroke="#683A9D" stroke-width="2px" vector-effect="non-scaling-stroke" />
+         </svg>
+         <div class="border_move"  style="background: #DDD1EB;border: 1px solid #FFFFFF;width:70px">
+                <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;">
+                <p style="margin-left: 0; margin-top: 15px;">NOT</p>
+            </div>
+     </div>
+     <div class="borders" style="width:auto;" draggable="true" @ondragend="@(()=>EndDrag())" @ondragend:stopPropagation="true"  @ondragstart="@(()=> StartDrag("or"))" @ondragstart:stopPropagation="true">
+         <svg height="100%" width="16" viewBox="0 0 16 219" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+              <path d="M16 1H1V218H16" stroke="#43633D" stroke-width="2px" vector-effect="non-scaling-stroke" />
+         </svg>
+         <div class="border_move"  style="background: #DDE7DB; border: 1px solid #F5F7FB;width:60px;">
+                <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;">
+                <p style="margin-left: 0; margin-top: 15px;">OR</p>
+         </div>
+     </div>
+     <div class="borders" style="width:auto;" draggable="true" @ondragend="@(()=>EndDrag())" @ondragend:stopPropagation="true"  @ondragstart="@(()=> StartDrag("and"))" @ondragstart:stopPropagation="true">
+         <svg height="100%" width="16" viewBox="0 0 16 219" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+              <path d="M16 1H1V218H16" stroke="#2649C5" stroke-width="2px" vector-effect="non-scaling-stroke" />
+         </svg>
+         <div class="border_move" style="width:70px;">
+                <img src="/css/img/move_icon.svg" style="height: 51px; width: 12px;">
+                <p style="margin-left: 0; margin-top: 15px;">AND</p>
+            </div>
+     </div>
+</div>
+<div style="border-top:1px dashed #B5BED5;width:100%"></div>
+@if (item != null)
+{
+    <Element_component item="@item"></Element_component>
+}
+else
+{
+    <div draggable="true" ondragover="event.preventDefault()" @ondrop="@(()=>firstDrop())"  @ondrop:stopPropagation="true" style="height:1000px;width:1000px"></div>
+}
+
+
+
+
+
+
+@code {
+    static string value = "{ 'op': 'not','operands': [{ 'op': 'and', 'operands': [{'op': '=', 'operands': [{ 'field-string': 'path' },{ 'value-string': '/json' }]},{'op': '=', 'operands': [{ 'field-string': 'paths' },{ 'value-string': '/json' }]},{ 'op': '>=','operands': [{ 'field-float': 'latitude'}, { 'value-float': 57.89331022258886}]},{'op':'or','operands':[{'op': '=', 'operands': [{ 'field-string': 'path' },{ 'value-string': '/json' }]},{ 'op': '>=','operands': [{ 'field-float': 'latitude'}, { 'value-float': 57.89331022258886}]}]}]},{'op': '=', 'operands': [{'field-varchar': 'stream'},{'value-varchar': 'checkRegistration'}]}]}";
+    static string json = value?.Replace(" ", "");
+    static string json2 = json?.Replace("'", "\"");
+    static Item item = JsonSerializer.Deserialize<Item>(json2);
+    int level = 1;
+    string InputValue;
+    string key="login";
+    string op="=";
+    Element element = new Element();
+    public void getJson()
+    {
+        value = JsonSerializer.Serialize(item);
+        Console.WriteLine(value);
+    }
+    public void getJson(Item _item)
+    {
+        value = JsonSerializer.Serialize(_item);
+        Console.WriteLine(value);
+    }
+    private void ReDraw()
+    {
+        StateHasChanged();
+    }
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        setDeep(level,item);
+
+    }
+    void setDeep(int level,Item mitem)
+    {
+        mitem.level = level;
+        if(mitem.op.Equals("or") | mitem.op.Equals("and") | mitem.op.Equals("not"))
+        {
+            level += 1;
+        }
+        foreach(Item _item in mitem.operands)
+        {
+            _item.level = level;
+            if (_item.operands != null)
+            {
+                setDeep(level,_item);
+            }
+        }
+
+    }
+    void AddElement()
+    {
+        Console.WriteLine(key);
+        Console.WriteLine(op);
+        Console.WriteLine(InputValue);
+        if (InputValue!=null)
+        {
+            Item _item = new Item();
+            _item.op = op;
+            Item secondItem = new Item();
+            secondItem.field_string = key;
+            Item thirdItem = new Item();
+            thirdItem.value_string = InputValue;
+            _item.operands = new List<Item>();
+            _item.operands.Add(secondItem);
+            _item.operands.Add(thirdItem);
+            if (item != null)
+            {
+                _item.level = 2;
+                item.operands.Add(_item);
+            }
+            else
+            {
+                _item.level = 1;
+                item = _item;
+            }
+        }
+    }
+    void StartDrag(String _op)
+    {
+        Item _item = new Item();
+        _item.op = _op;
+        _item.operands = new List<Item>();
+        StateContainer.Current = _item;
+        StateContainer.Flag = true;
+        StateContainer.New_Operand = true;
+    }
+    void EndDrag()
+    {
+        StateContainer.New_Operand = false;
+    }
+    public void firstDrop()
+    {
+        var current = StateContainer.Current;
+        current.level = 1;
+        item = current;
+        StateHasChanged();
+    }
+    public void setItem(Item _item)
+    {
+        item = _item;
+    }
+}

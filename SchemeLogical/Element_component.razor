@@ -1,6 +1,8 @@
 ﻿@inject StateContainer StateContainer
 @using System.Text.Json;
-@if(@item.op.Equals("or") | @item.op.Equals("and") | @item.op.Equals("not"))
+@if (item != null)
+{
+    @if(@item.op.Equals("or") | @item.op.Equals("and") | @item.op.Equals("not"))
 {
     <div style="height:20px" draggable="true" tabindex="1"  ondragover="event.preventDefault()" @ondrop="@(()=> Drop())"
                              @ondragstart="@(()=> StartDrag())"
@@ -8,7 +10,7 @@
                              @ondragstart:stopPropagation="true"
                              @ondragend="(()=>DeleteItem())"
                              @ondragend:stopPropagation="true"></div>
-    <div class="borders" style="width:auto;" ondragover="event.preventDefault()" tabindex="1" draggable="true" @ondrop="@(()=> Drop())" 
+    <div class="borders" style="width:auto;min-height:40px" ondragover="event.preventDefault()" tabindex="1" draggable="true" @ondrop="@(()=> Drop())" 
                              @ondragstart="@(()=> StartDrag())"
                             @ondrop:stopPropagation="true"
                              @ondragstart:stopPropagation="true"
@@ -120,12 +122,19 @@ else
                              @ondragstart:stopPropagation="true"
                              @ondragend="(()=>DeleteItem())"
                            @ondragend:stopPropagation="true"></div>
+    }
 }
+else
+{
+    <div draggable="true" ondragover="event.preventDefault()" @ondrop="@(()=>firstDrop())"  @ondrop:stopPropagation="true" style="height:1000px;width:1000px"></div>
+}
+
 
 
 @code {
     [Parameter]
     public Item item { get; set; }
+    [CascadingParameter] public AddField_component parent{ get; set; }
     [CascadingParameter] public Element_component component { get; set; }
     bool flag=false;
     bool flag_component = false;
@@ -137,60 +146,100 @@ else
         StateContainer.Flag = true;
         flag_component = true;
     }
+    private void firstDrop()
+    {
+        var current = StateContainer.Current;
+        current.level = 1;
+        item = current;
+        StateHasChanged();
+    }
     private void Drop()
     {
         var current = StateContainer.Current;
+        Console.WriteLine(current.operands.Count);
         Console.WriteLine(item.op);
-        if (item != null)
+        if (StateContainer.New_Operand)
         {
-            if (current.level == item.level)
+            if (component != null)
             {
-                try
+                current.level = item.level;
+                component.item.operands.Add(current);
+                component.StateHasChanged();
+            }
+            else
+            {
+                current.level = 2;
+                item.operands.Add(current);
+                StateHasChanged();
+            }
+
+            StateContainer.New_Operand = false;
+        }
+        else
+        {
+            if (item != null)
+            {
+                if((item.op.Equals("or") | item.op.Equals("and") | item.op.Equals("not")) & item.operands.Count == 0)
                 {
-                    var index = component.item.operands.IndexOf(item);
-                    component.item.operands.Remove(current);
-                    component.item.operands.Insert(index, current);
-                    component.StateHasChanged();
-                    StateContainer.Flag = false;
-                    StateContainer.AllowZone = false;
+                            
+                    current.level += 1;
+                    item.operands.Add(current);
+                    StateContainer.AllowZone = true;
+                    StateContainer.Flag = true;
                 }
-                catch
+                else if (current.level == item.level)
                 {
-                    Console.WriteLine("it is root");
+                    try
+                    {
+                        
+                            var index = component.item.operands.IndexOf(item);
+                            component.item.operands.Remove(current);
+                            component.item.operands.Insert(index, current);
+                            component.StateHasChanged();
+                            StateContainer.Flag = false;
+                            StateContainer.AllowZone = false;
+                        
+                        
+                    }
+                    catch
+                    {
+                        Console.WriteLine("it is root");
+                    }
+
+                }
+                else
+                {
+
+                    if (item.level != 1)
+                    {
+                        current.level = item.level;
+                    }
+                    else
+                    {
+                        current.level = 2;
+                    }
+                    if (component != null)
+                    {
+                        component.item.operands.Add(current);
+                        component.StateHasChanged();
+                    }
+                    else
+                    {
+                        item.operands.Add(current);
+                        StateHasChanged();
+                    }
+                    StateContainer.AllowZone = true;
+                    StateContainer.Flag = true;
+                    Console.WriteLine("я тут");
                 }
 
             }
             else
             {
-                if (item.level != 1)
-                {
-                    current.level = item.level;
-                }
-                else
-                {
-                    current.level = 2;
-                }
-                if (component != null)
-                {
-                    component.item.operands.Add(current);
-                    component.StateHasChanged();
-                }
-                else
-                {
-                    item.operands.Add(current);
-                    StateHasChanged();
-                }
-                StateContainer.AllowZone = true;
-                StateContainer.Flag = true;
-                Console.WriteLine("я тут");
+                StateContainer.AllowZone = false;
             }
-            getJson();
+        }
 
-        }
-        else
-        {
-            StateContainer.AllowZone = false;
-        }
 
 
     }
@@ -272,7 +321,7 @@ else
 
         }
         StateHasChanged();
-        getJson();
+        
     }
     private void prevOperand()
     {
@@ -304,17 +353,7 @@ else
 
         }
         StateHasChanged();
-        getJson();
-    }
-    private void not_acceptable_zone()
-    {
-        flag_acceptable_zone = false;
-        StateContainer.AllowZone = flag_acceptable_zone;
-    }
-    private void acceptable_zone()
-    {
-        flag_acceptable_zone = true;
-        StateContainer.AllowZone = flag_acceptable_zone;
+        
     }
     private void getJson()
     {

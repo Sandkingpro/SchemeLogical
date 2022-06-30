@@ -7,8 +7,18 @@
         private List<Item> currentItems;
         private bool allow_zone=false;
         private bool flag=false;
+        private bool new_operand = false;
         private Item current=new();
 
+        public bool New_Operand
+        {
+            get { return new_operand; }
+            set 
+            { 
+                new_operand = value;
+                NotifyStateChanged();
+            }
+        }
         public bool AllowZone
         {
             get { return allow_zone; }

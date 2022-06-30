@@ -7,10 +7,8 @@
 @using System.Text.Json.Nodes
 @inject StateContainer StateContainer
 @page "/"
-<div class="scheme container-fluid m-5">
-    <Element_component item="@item"></Element_component>
-  
-    
+<div class="scheme container-fluid m-2">
+    <AddField_component></AddField_component>
 </div>
 
 @code{
@@ -46,19 +44,23 @@
         String js="";
         foreach(var value in keyValuePairs)
         {
-            Console.WriteLine(value.Key);
+            if (!value.Key.Equals("operands"))
+            {
+                Console.WriteLine(value.Value+";level:0");
+            }
+
             var k = value.Value;
             if (value.Key.Equals("op"))
             {
                 element.operandValue = value.Value.ToString();
+                element.operands = new List<Element>();
             }
             js = k.ToJsonString();
 
         }
-        List<Element> operands = new List<Element>();
-        parseJson(js,jsonNode,root,operands);
-        var new_js = JsonSerializer.Serialize(element);
-        Console.WriteLine(new_js);
+        //parseJson(js,jsonNode,root,element,1);
+        //var new_js = JsonSerializer.Serialize(element);
+        //Console.WriteLine(new_js);
 
     }
     void setDeep(int level,Item mitem)
@@ -78,20 +80,21 @@
         }
 
     }
-    int count = 1;
-    void parseJson(string js,JsonNode jsonNode,JsonNode root,List<Element> operands)
+    void parseJson(string js,JsonNode jsonNode,JsonNode root,Element element,int count)
     {
         jsonNode=JsonNode.Parse(js);
         root = jsonNode.Root;
         JsonArray o = root.AsArray();
+        Element _element = new Element();
+        _element.level = count;
         foreach (var t in o)
         {
-            Element _element = new Element();
+
             foreach (var m in t.AsObject())
             {
                 if (!m.Key.Equals("operands"))
                 {
-                    Console.WriteLine(m.Value.ToString()+";level:"+count);
+                    Console.WriteLine(m.Value.ToString()+";level:"+_element.level);
                 }
 
                 if (m.Key.Equals("op"))
@@ -114,13 +117,16 @@
 
                 if (m.Key.Equals("operands"))
                 {
-                    parseJson(m.Value.ToJsonString(), jsonNode, root, element.operands);
+
+                    parseJson(m.Value.ToJsonString(), jsonNode, root, _element,count);
+
                 }
+
             }
 
 
         }
-        
+
         
     }
            
