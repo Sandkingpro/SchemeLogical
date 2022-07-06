@@ -1,13 +1,20 @@
-﻿namespace SchemeLogical
+﻿using System.Text.Json.Serialization;
+namespace SchemeLogical
 {
     public class Element
     {
-       public String operandValue { get; set; }
-       public List<Element> operands { get; set; }
-       public String key { get; set; }
-       public String value { get; set; }
-       public String type { get; set; }
-       public int level { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public String operandValue { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public List<Element> operands { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public String key { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public String value { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public String type { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public int level { get; set; }
 
 
     }

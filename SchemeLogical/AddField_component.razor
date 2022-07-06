@@ -61,7 +61,10 @@
 <div style="border-top:1px dashed #B5BED5;width:100%"></div>
 @if (item != null)
 {
-    <Element_component item="@item"></Element_component>
+    <CascadingValue Value="this">
+        <Element_component item="@item"></Element_component>
+    </CascadingValue>
+    
 }
 else
 {
@@ -77,7 +80,7 @@ else
     static string value = "{ 'op': 'not','operands': [{ 'op': 'and', 'operands': [{'op': '=', 'operands': [{ 'field-string': 'path' },{ 'value-string': '/json' }]},{'op': '=', 'operands': [{ 'field-string': 'paths' },{ 'value-string': '/json' }]},{ 'op': '>=','operands': [{ 'field-float': 'latitude'}, { 'value-float': 57.89331022258886}]},{'op':'or','operands':[{'op': '=', 'operands': [{ 'field-string': 'path' },{ 'value-string': '/json' }]},{ 'op': '>=','operands': [{ 'field-float': 'latitude'}, { 'value-float': 57.89331022258886}]}]}]},{'op': '=', 'operands': [{'field-varchar': 'stream'},{'value-varchar': 'checkRegistration'}]}]}";
     static string json = value?.Replace(" ", "");
     static string json2 = json?.Replace("'", "\"");
-    static Item item = JsonSerializer.Deserialize<Item>(json2);
+    private static Item item = JsonSerializer.Deserialize<Item>(json2);
     int level = 1;
     string InputValue;
     string key="login";

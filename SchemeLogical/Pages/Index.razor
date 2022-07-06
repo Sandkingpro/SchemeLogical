@@ -37,7 +37,6 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        setDeep(level,item);
         JsonNode jsonNode = JsonNode.Parse(json3);
         JsonNode root = jsonNode.Root;
         JsonObject keyValuePairs = root.AsObject();
@@ -58,76 +57,103 @@
             js = k.ToJsonString();
 
         }
-        //parseJson(js,jsonNode,root,element,1);
-        //var new_js = JsonSerializer.Serialize(element);
-        //Console.WriteLine(new_js);
+        parseJson(js,jsonNode,root,element.operands,1);
+        var new_js = JsonSerializer.Serialize(element,new JsonSerializerOptions{Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping});
+        Console.WriteLine(new_js);
 
     }
-    void setDeep(int level,Item mitem)
-    {
-        mitem.level = level;
-        if(mitem.op.Equals("or") | mitem.op.Equals("and") | mitem.op.Equals("not"))
-        {
-            level += 1;
-        }
-        foreach(Item _item in mitem.operands)
-        {
-            _item.level = level;
-            if (_item.operands != null)
-            {
-                setDeep(level,_item);
-            }
-        }
 
-    }
-    void parseJson(string js,JsonNode jsonNode,JsonNode root,Element element,int count)
+
+    void parseJson(string js,JsonNode jsonNode,JsonNode root,List<Element> elements,int count)
     {
+        string new_js="";
         jsonNode=JsonNode.Parse(js);
         root = jsonNode.Root;
         JsonArray o = root.AsArray();
-        Element _element = new Element();
-        _element.level = count;
+
+        bool flag = false;
         foreach (var t in o)
         {
-
+            Element _element = new Element();
             foreach (var m in t.AsObject())
             {
+                
                 if (!m.Key.Equals("operands"))
                 {
-                    Console.WriteLine(m.Value.ToString()+";level:"+_element.level);
-                }
-
-                if (m.Key.Equals("op"))
-                {
-                    _element.operandValue = m.Value.ToString();
-                    if(m.Value.ToString().Equals("or") | m.Value.ToString().Equals("and") | m.Value.ToString().Equals("not"))
+                    Console.WriteLine(m.Value.ToString());
+                    if (m.Key.Equals("op"))
                     {
-                        count++;
+
+                        _element.operandValue = m.Value.ToString();
+                        if(m.Value.ToString().Equals("or") | m.Value.ToString().Equals("and") | m.Value.ToString().Equals("not"))
+                        {
+                            _element.operands = new();
+                            elements.Add(_element);
+                        }
+                        
+
                     }
-                }
-                if(m.Key.Contains("string") | m.Key.Contains("char") | m.Key.Contains("float"))
-                {
-                    _element.type = m.Value.ToString();
-                    _element.key = m.Key;
-                }
-                if (m.Key.Contains("value"))
-                {
-                    _element.value = m.Value.ToString();
-                }
-
-                if (m.Key.Equals("operands"))
-                {
-
-                    parseJson(m.Value.ToJsonString(), jsonNode, root, _element,count);
 
                 }
+
+
+                else
+                {
+
+
+                    new_js = m.Value.ToJsonString();
+                    if (_element.operands != null)
+                    {
+                        parseJson(new_js, jsonNode, root, _element.operands, count);
+                    }
+                    else
+                    {
+                        ParseSimpleElement(new_js, jsonNode, root, _element);
+                        elements.Add(_element);
+                    }
+
+
+                }
+
+
+
 
             }
 
 
+
+
+
         }
 
-        
+
+
+
+
+    }
+    void ParseSimpleElement(string js,JsonNode jsonNode,JsonNode root,Element element)
+    {
+        string new_js="";
+        jsonNode=JsonNode.Parse(js);
+        root = jsonNode.Root;
+        JsonArray o = root.AsArray();
+        foreach(var t in o)
+        {
+            foreach(var m in t.AsObject())
+            {
+                if(m.Key.ToString().Contains("field"))
+                    {
+                        element.key = m.Value.ToString();
+                        element.type = m.Key;
+
+
+                    }
+                    if (m.Key.Contains("value"))
+                    {
+                        element.value = m.Value.ToString();
+                    }
+            }
+        }
     }
            
 

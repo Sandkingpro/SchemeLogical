@@ -1,8 +1,6 @@
 ﻿@inject StateContainer StateContainer
 @using System.Text.Json;
-@if (item != null)
-{
-    @if(@item.op.Equals("or") | @item.op.Equals("and") | @item.op.Equals("not"))
+@if(@item.op.Equals("or") | @item.op.Equals("and") | @item.op.Equals("not"))
 {
     <div style="height:20px" draggable="true" tabindex="1"  ondragover="event.preventDefault()" @ondrop="@(()=> Drop())"
                              @ondragstart="@(()=> StartDrag())"
@@ -123,11 +121,7 @@ else
                              @ondragend="(()=>DeleteItem())"
                            @ondragend:stopPropagation="true"></div>
     }
-}
-else
-{
-    <div draggable="true" ondragover="event.preventDefault()" @ondrop="@(()=>firstDrop())"  @ondrop:stopPropagation="true" style="height:1000px;width:1000px"></div>
-}
+
 
 
 
@@ -158,6 +152,7 @@ else
         var current = StateContainer.Current;
         Console.WriteLine(current.operands.Count);
         Console.WriteLine(item.op);
+        Console.WriteLine(current.op);
         if (StateContainer.New_Operand)
         {
             if (component != null)
@@ -168,11 +163,23 @@ else
             }
             else
             {
-                current.level = 2;
-                item.operands.Add(current);
-                StateHasChanged();
+                if(item.level==1 & !item.op.Equals("or") & !item.op.Equals("and") & !item.op.Equals("not") & (current.op.Equals("or")
+                | current.op.Equals("and") | current.op.Equals("not")))
+                {
+                    current.level = 1;
+                    item.level = 2;
+                    current.operands.Add(item);
+                    parent.setItem(current);
+                    Console.WriteLine("pizdec");
+                }
+                else
+                {
+                    current.level = 2;
+                    item.operands.Add(current);
+                    StateHasChanged();
+                }
+
             }
-            Console.WriteLine("pizdec");
             StateContainer.New_Operand = false;
         }
         else
