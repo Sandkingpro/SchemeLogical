@@ -4,6 +4,7 @@ namespace SchemeLogical
     public class Element
     {
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        [JsonPropertyName("op")]
         public String operandValue { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public List<Element> operands { get; set; }

@@ -8,7 +8,7 @@
 @inject StateContainer StateContainer
 @page "/"
 <div class="scheme container-fluid m-2">
-    <AddField_component></AddField_component>
+    
 </div>
 
 @code{
@@ -37,128 +37,12 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        JsonNode jsonNode = JsonNode.Parse(json3);
-        JsonNode root = jsonNode.Root;
-        JsonObject keyValuePairs = root.AsObject();
-        String js="";
-        foreach(var value in keyValuePairs)
-        {
-            if (!value.Key.Equals("operands"))
-            {
-                Console.WriteLine(value.Value+";level:0");
-            }
-
-            var k = value.Value;
-            if (value.Key.Equals("op"))
-            {
-                element.operandValue = value.Value.ToString();
-                element.operands = new List<Element>();
-            }
-            js = k.ToJsonString();
-
-        }
-        parseJson(js,jsonNode,root,element.operands,1);
-        var new_js = JsonSerializer.Serialize(element,new JsonSerializerOptions{Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping});
-        Console.WriteLine(new_js);
-
-    }
-
-
-    void parseJson(string js,JsonNode jsonNode,JsonNode root,List<Element> elements,int count)
-    {
-        string new_js="";
-        jsonNode=JsonNode.Parse(js);
-        root = jsonNode.Root;
-        JsonArray o = root.AsArray();
-
-        bool flag = false;
-        foreach (var t in o)
-        {
-            Element _element = new Element();
-            foreach (var m in t.AsObject())
-            {
-                
-                if (!m.Key.Equals("operands"))
-                {
-                    Console.WriteLine(m.Value.ToString());
-                    if (m.Key.Equals("op"))
-                    {
-
-                        _element.operandValue = m.Value.ToString();
-                        if(m.Value.ToString().Equals("or") | m.Value.ToString().Equals("and") | m.Value.ToString().Equals("not"))
-                        {
-                            _element.operands = new();
-                            elements.Add(_element);
-                        }
-                        
-
-                    }
-
-                }
-
-
-                else
-                {
-
-
-                    new_js = m.Value.ToJsonString();
-                    if (_element.operands != null)
-                    {
-                        parseJson(new_js, jsonNode, root, _element.operands, count);
-                    }
-                    else
-                    {
-                        ParseSimpleElement(new_js, jsonNode, root, _element);
-                        elements.Add(_element);
-                    }
-
-
-                }
-
-
-
-
-            }
-
-
-
-
-
-        }
-
-
-
+        Element element=QueryJsonParser.Deserialize(value);
+        var new_js = JsonSerializer.Serialize(element);
+        Console.WriteLine(QueryJsonParser.Serialize(element));
 
 
     }
-    void ParseSimpleElement(string js,JsonNode jsonNode,JsonNode root,Element element)
-    {
-        string new_js="";
-        jsonNode=JsonNode.Parse(js);
-        root = jsonNode.Root;
-        JsonArray o = root.AsArray();
-        foreach(var t in o)
-        {
-            foreach(var m in t.AsObject())
-            {
-                if(m.Key.ToString().Contains("field"))
-                    {
-                        element.key = m.Value.ToString();
-                        element.type = m.Key;
-
-
-                    }
-                    if (m.Key.Contains("value"))
-                    {
-                        element.value = m.Value.ToString();
-                    }
-            }
-        }
-    }
-           
-
-    
-
 
 
 }
